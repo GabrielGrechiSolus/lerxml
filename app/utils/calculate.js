@@ -1,26 +1,28 @@
-const xml2js = require('xml2js');
+import xml2js from 'xml2js';
 
-export async function calculate(xmlData) {
-    try {
-        const result = await xml2js.parseStringPromise(xmlData);
+export function calculateValues(xmlContent) {
+    const parser = new xml2js.Parser({ explicitArray: true });
+    let totalValorPagoProc = 0;
+    let valorPagoGuia = 0;
+    let valoresProc = [];
+
+    parser.parseString(xmlContent, (err, result) => {
+        if (err) throw new Error('Erro ao processar o XML');
+
         const procedimentos = result['ans:guiaMonitoramento']['ans:procedimentos'];
-
-        let totalValorPagoProc = 0;
-
-        procedimentos.forEach((procedimento) => {
-            const valorPagoProc = parseFloat(procedimento['ans:valorPagoProc'][0] || '0');
+        valoresProc = procedimentos.map(proc => {
+            const valorPagoProc = parseFloat(proc['ans:valorPagoProc'][0]);
             totalValorPagoProc += valorPagoProc;
+            return valorPagoProc;
         });
 
-        const valoresGuia = result['ans:guiaMonitoramento']['ans:valoresGuia'][0];
-        const valorPagoGuia = parseFloat(valoresGuia['ans:valorPagoGuia'][0] || '0');
+        valorPagoGuia = parseFloat(result['ans:guiaMonitoramento']['ans:valoresGuia'][0]['ans:valorPagoGuia'][0]);
+    });
 
-        return {
-            totalValorPagoProc: totalValorPagoProc.toFixed(2),
-            valorPagoGuia: valorPagoGuia.toFixed(2),
-            isEqual: totalValorPagoProc === valorPagoGuia,
-        };
-    } catch (error) {
-        throw new Error('Erro ao processar o XML: ' + error.message);
-    }
+    return {
+        totalValorPagoProc: parseFloat(totalValorPagoProc.toFixed(2)),
+        valorPagoGuia: parseFloat(valorPagoGuia.toFixed(2)),
+        valoresProc: valoresProc.map(value => parseFloat(value.toFixed(2))),
+        areEqual: totalValorPagoProc.toFixed(2) === valorPagoGuia.toFixed(2),
+    };
 }
