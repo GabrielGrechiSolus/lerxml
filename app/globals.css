@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Reset e base visual ===== */
+html,
+body {
+  @apply h-full w-full bg-gray-100 text-gray-800 antialiased;
+}
+
+/* ===== Barra de rolagem elegante ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-blue-400 rounded-full hover:bg-blue-500;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-200;
+}
+
+/* ===== Transições suaves ===== */
+* {
+  @apply transition-colors duration-200 ease-in-out;
+}
+
+/* ===== Links ===== */
+a {
+  @apply text-blue-600 hover:text-blue-700;
+}
+
+/* ===== Tabelas padrão ===== */
+table {
+  @apply border-collapse w-full text-sm text-center;
+}
+
+th {
+  @apply bg-blue-600 text-white font-semibold px-4 py-2 border;
+}
+
+td {
+  @apply px-4 py-2 border;
+}
+
+tr:nth-child(even) {
+  @apply bg-gray-50;
+}
+
+tr:hover {
+  @apply bg-blue-50;
+}
+
+/* ===== Botões padrão ===== */
+button {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
