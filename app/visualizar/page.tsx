@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import xml2js from 'xml2js';
+import { Parser } from 'xml2js';
+
+type XMLNode = { [key: string]: string | XMLNode | XMLNode[] };
 
 interface OpenMap {
   [key: string]: boolean;
 }
 
 // Função recursiva para determinar se um nó ou qualquer filho bate com o filtro
-function nodeMatchesFilter(node: any, search: string): boolean {
+function nodeMatchesFilter(node: XMLNode | string, search: string): boolean {
   if (!search) return true;
   if (typeof node === 'string') {
     return node.toLowerCase().includes(search.toLowerCase());
@@ -17,48 +19,43 @@ function nodeMatchesFilter(node: any, search: string): boolean {
     return Object.entries(node).some(
       ([key, value]) =>
         key.toLowerCase().includes(search.toLowerCase()) ||
-        nodeMatchesFilter(value, search)
+        nodeMatchesFilter(value as XMLNode | string, search)
     );
   }
   return false;
 }
 
 export default function VisualizarXML() {
-  const [xmlFile, setXmlFile] = useState<File | null>(null);
-  const [xmlData, setXmlData] = useState<any>(null);
+  const [xmlData, setXmlData] = useState<XMLNode | null>(null);
   const [search, setSearch] = useState('');
   const [openMap, setOpenMap] = useState<OpenMap>({});
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setXmlFile(file);
+    const file = e.target.files?.[0];
     setXmlData(null);
     setSearch('');
     setOpenMap({});
 
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const content = event.target?.result as string;
-        const parser = new xml2js.Parser({ explicitArray: false });
-        try {
-          const result = await parser.parseStringPromise(content);
-          setXmlData(result);
-        } catch (err) {
-          console.error('Erro ao processar XML:', err);
-        }
-      };
-      reader.readAsText(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const content = event.target?.result as string;
+      const parser = new Parser({ explicitArray: false });
+      try {
+        const result: XMLNode = await parser.parseStringPromise(content);
+        setXmlData(result);
+      } catch (err) {
+        console.error('Erro ao processar XML:', err);
+      }
+    };
+    reader.readAsText(file);
   };
 
-  const toggleOpen = (key: string) => {
-    setOpenMap((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
+  const toggleOpen = (key: string) => setOpenMap((prev) => ({ ...prev, [key]: !prev[key] }));
   const isOpen = (key: string) => !!openMap[key];
 
-  const renderNode = (node: any, parentKey = '', level = 0): JSX.Element | null => {
+  const renderNode = (node: XMLNode | string, parentKey = '', level = 0): React.ReactNode => {
     if (!nodeMatchesFilter(node, search)) return null;
 
     if (typeof node === 'string') {
@@ -75,7 +72,7 @@ export default function VisualizarXML() {
           {Object.entries(node).map(([key, value]) => {
             const uniqueKey = parentKey + key;
             const isValueTag = key.toLowerCase().startsWith('valor');
-            if (!nodeMatchesFilter(value, search) && !key.toLowerCase().includes(search.toLowerCase())) {
+            if (!nodeMatchesFilter(value as XMLNode | string, search) && !key.toLowerCase().includes(search.toLowerCase())) {
               return null;
             }
 
@@ -91,22 +88,19 @@ export default function VisualizarXML() {
                   <span className="font-bold text-blue-600">
                     {typeof value === 'object' ? (isOpen(uniqueKey) ? '▼' : '►') : '•'} {key}
                   </span>
-
                   {typeof value === 'string' && (
                     <span className={isValueTag ? 'ml-2 font-bold text-green-700' : 'ml-2 text-gray-700'}>
                       {value}
                     </span>
                   )}
                 </div>
-
-                {typeof value === 'object' && isOpen(uniqueKey) && renderNode(value, uniqueKey, level + 1)}
+                {typeof value === 'object' && isOpen(uniqueKey) && renderNode(value as XMLNode, uniqueKey, level + 1)}
               </li>
             );
           })}
         </ul>
       );
     }
-
     return null;
   };
 
@@ -123,7 +117,6 @@ export default function VisualizarXML() {
           onChange={handleFileChange}
           className="border-0 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:from-blue-700 hover:to-blue-600 cursor-pointer transition-all duration-200"
         />
-
         <input
           type="text"
           placeholder="Filtrar tags ou valores..."

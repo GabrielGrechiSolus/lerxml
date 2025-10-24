@@ -1,60 +1,58 @@
 'use client';
 
 import React, { useState } from 'react';
-import xml2js from 'xml2js';
+import { Parser } from 'xml2js';
+
+type XMLNode = { [key: string]: string | number | XMLNode | XMLNode[] };
 
 export default function SomaIndividualXML() {
-  const [xmlFile, setXmlFile] = useState<File | null>(null);
+  const [xmlData, setXmlData] = useState<XMLNode | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [selectedTag, setSelectedTag] = useState('');
   const [total, setTotal] = useState<number | null>(null);
 
-  // Seleciona arquivo XML
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    setXmlFile(file);
-    setTotal(null);
+    setXmlData(null);
     setAvailableTags([]);
     setSelectedTag('');
+    setTotal(null);
 
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const xmlContent = event.target?.result as string;
-        try {
-          const parser = new xml2js.Parser({ explicitArray: false });
-          const result = await parser.parseStringPromise(xmlContent);
+    if (!file) return;
 
-          const tags = new Set<string>();
-          findValorTags(result, tags);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const xmlContent = event.target?.result as string;
+      try {
+        const parser = new Parser({ explicitArray: false });
+        const result: XMLNode = await parser.parseStringPromise(xmlContent);
+        setXmlData(result);
 
-          setAvailableTags(Array.from(tags));
-        } catch (err) {
-          console.error('Erro ao processar XML:', err);
-          alert('Erro ao processar XML. Verifique o arquivo.');
-        }
-      };
-      reader.readAsText(file);
-    }
+        const tags = new Set<string>();
+        findValorTags(result, tags);
+        setAvailableTags(Array.from(tags));
+      } catch (err) {
+        console.error('Erro ao processar XML:', err);
+        alert('Erro ao processar XML. Verifique o arquivo.');
+      }
+    };
+    reader.readAsText(file);
   };
 
-  // Função recursiva para encontrar todas as tags que começam com "valor"
-  const findValorTags = (node: any, tags: Set<string>) => {
-    if (typeof node === 'object' && node !== null) {
+  const findValorTags = (node: XMLNode | string | number | XMLNode[], tags: Set<string>) => {
+    if (typeof node === 'string' || typeof node === 'number') return;
+    if (Array.isArray(node)) {
+      node.forEach((child) => findValorTags(child, tags));
+    } else {
       Object.entries(node).forEach(([key, value]) => {
-        if (key.startsWith('valor') || key.includes(':valor')) {
-          tags.add(key);
-        }
-        if (typeof value === 'object') {
-          findValorTags(value, tags);
-        }
+        if (key.toLowerCase().includes('valor')) tags.add(key);
+        findValorTags(value, tags);
       });
     }
   };
 
-  // Soma os valores da tag selecionada
   const handleSomarTag = () => {
-    if (!xmlFile) {
+    if (!xmlData) {
       alert('Selecione um arquivo XML primeiro.');
       return;
     }
@@ -63,51 +61,49 @@ export default function SomaIndividualXML() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const xmlContent = event.target?.result as string;
-      try {
-        const parser = new xml2js.Parser({ explicitArray: false });
-        const result = await parser.parseStringPromise(xmlContent);
-
-        let soma = 0;
-        somaTag(result, selectedTag, (val) => {
-          if (!isNaN(val)) soma += parseFloat(val);
-        });
-
-        setTotal(soma);
-      } catch (err) {
-        console.error('Erro ao processar XML:', err);
-        alert('Erro ao processar XML. Verifique o arquivo.');
-      }
-    };
-    reader.readAsText(xmlFile);
+    let soma = 0;
+    somaTag(xmlData, selectedTag, (val) => {
+      if (!isNaN(val)) soma += val;
+    });
+    setTotal(soma);
   };
 
-  // Função recursiva para somar tags específicas
-  const somaTag = (node: any, tag: string, callback: (val: number) => void) => {
-    if (typeof node === 'object' && node !== null) {
-      Object.entries(node).forEach(([key, value]) => {
-        if (key === tag) {
-          if (Array.isArray(value)) {
-            value.forEach((v) => callback(parseFloat(v)));
-          } else {
-            callback(parseFloat(value));
-          }
-        } else if (typeof value === 'object') {
-          somaTag(value, tag, callback);
+  const somaTag = (
+  node: XMLNode | string | number | XMLNode[],
+  tag: string,
+  callback: (val: number) => void
+) => {
+  if (node === null || node === undefined) return;
+
+  if (typeof node === 'string' || typeof node === 'number') return;
+
+  if (Array.isArray(node)) {
+    node.forEach((child) => somaTag(child, tag, callback));
+  } else {
+    Object.entries(node).forEach(([key, value]) => {
+      if (key === tag) {
+        if (typeof value === 'string') {
+          const n = parseFloat(value.replace(',', '.'));
+          if (!isNaN(n)) callback(n);
+        } else if (typeof value === 'number') {
+          callback(value);
+        } else if (Array.isArray(value)) {
+          value.forEach((v) => somaTag(v, tag, callback));
         }
-      });
-    }
-  };
+      } else {
+        somaTag(value, tag, callback);
+      }
+    });
+  }
+};
+
 
   return (
-    <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-8 mt-10">
-      <h1 className="text-3xl sm:text-4xl font-bold text-blue-600 mb-8 text-center">
-        Soma Individual de Tag
+    <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl p-8 mt-10">
+      <h1 className="text-4xl font-bold text-blue-600 mb-8 text-center">
+        Soma Individual de Tag 🧮
       </h1>
 
-      {/* Upload e seleção de tag */}
       <div className="flex flex-col sm:flex-row items-center gap-4 mb-8 justify-center">
         <input
           type="file"
@@ -131,25 +127,22 @@ export default function SomaIndividualXML() {
 
         <button
           onClick={handleSomarTag}
-          className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg font-bold shadow-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200"
+          className="bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-lg font-bold shadow-md hover:from-green-700 hover:to-green-600 transition-all duration-200"
         >
           Somar Tag
         </button>
       </div>
 
-      {/* Resultado */}
-      {total !== null && (
+      {total !== null ? (
         <div className="bg-gradient-to-tr from-green-50 to-green-100 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-200 border-t-4 border-green-500 text-center">
           <h3 className="text-green-700 font-semibold text-xl sm:text-2xl break-words">
             Total da Tag <span className="text-blue-600">{selectedTag}</span>
           </h3>
           <p className="text-gray-800 font-bold text-3xl sm:text-4xl mt-4">{total.toFixed(2)}</p>
         </div>
-      )}
-
-      {total === null && (
+      ) : (
         <p className="text-gray-500 text-center mt-10 text-lg">
-          📁 Selecione um XML e escolha a tag que deseja somar, depois clique em "Somar Tag".
+          📁 Selecione um XML e escolha a tag que deseja somar, depois clique em &quot;Somar Tag&quot;.
         </p>
       )}
     </div>
