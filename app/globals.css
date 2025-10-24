@@ -1,3 +1,6 @@
+/* Import font - must be before tailwind directives */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,7 +8,8 @@
 /* ===== Reset e base visual ===== */
 html,
 body {
-  @apply h-full w-full bg-gray-100 text-gray-800 antialiased;
+  @apply h-full w-full bg-gray-50 text-gray-800 antialiased;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
 /* ===== Barra de rolagem elegante ===== */
@@ -15,7 +19,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-blue-400 rounded-full hover:bg-blue-500;
+  @apply bg-accent rounded-full hover:bg-indigo-600;
 }
 
 ::-webkit-scrollbar-track {
@@ -29,7 +33,7 @@ body {
 
 /* ===== Links ===== */
 a {
-  @apply text-blue-600 hover:text-blue-700;
+  @apply text-primary hover:text-accent;
 }
 
 /* ===== Tabelas padrão ===== */
@@ -38,7 +42,7 @@ table {
 }
 
 th {
-  @apply bg-blue-600 text-white font-semibold px-4 py-2 border;
+  @apply bg-primary text-white font-semibold px-4 py-2 border;
 }
 
 td {
@@ -55,5 +59,19 @@ tr:hover {
 
 /* ===== Botões padrão ===== */
 button {
-  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  @apply focus:outline-none;
+}
+
+/* Primary button */
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-accent text-white px-5 py-3 rounded-lg font-semibold shadow-md hover:from-primary-light hover:to-blue-700 disabled:opacity-60;
+}
+
+.btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-primary px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50;
+}
+
+/* Small neutral button */
+.btn-sm {
+  @apply h-10 px-3 text-sm;
 }
