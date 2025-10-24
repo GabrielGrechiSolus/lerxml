@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { calculateValues } from './utils/calculate';
 
-export default function Home() {
+export default function ProcessarXML() {
   const [file, setFile] = useState<File | null>(null);
   const [results, setResults] = useState<{
     totalValorPagoProc: number;
@@ -20,7 +20,7 @@ export default function Home() {
   const handleProcessFile = async () => {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const xmlContent = event.target?.result as string;
       const calculatedResults = calculateValues(xmlContent);
       setResults(calculatedResults);
@@ -34,7 +34,7 @@ export default function Home() {
         Processador de Arquivos XML
       </h1>
 
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row items-center gap-4 mb-8 justify-center">
         <input
           type="file"
           accept=".xml"
@@ -43,34 +43,27 @@ export default function Home() {
         />
         <button
           onClick={handleProcessFile}
-          className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-8 py-3 rounded-lg font-semibold shadow-md hover:from-blue-700 hover:to-blue-600 transition-all duration-200 w-full sm:w-auto"
+          className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg font-bold shadow-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200"
         >
           Processar Arquivo
         </button>
       </div>
 
       {results && (
-        <div className="w-full bg-gray-50 p-8 rounded-2xl shadow-inner border border-gray-200">
+        <div className="bg-gray-50 p-8 rounded-2xl shadow-md border border-gray-200">
           <h2 className="text-2xl font-semibold text-blue-600 mb-6 text-center">
             Resultados do Cálculo
           </h2>
 
-          {/* Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
             <div className="bg-white shadow-md rounded-xl p-4 text-center border-t-4 border-blue-500">
               <h3 className="text-gray-500 text-sm font-medium">Total valorPagoProc</h3>
-              <p className="text-2xl font-bold text-blue-600 mt-2">
-                {results.totalValorPagoProc.toFixed(2)}
-              </p>
+              <p className="text-2xl font-bold text-blue-600 mt-2">{results.totalValorPagoProc.toFixed(2)}</p>
             </div>
-
             <div className="bg-white shadow-md rounded-xl p-4 text-center border-t-4 border-indigo-500">
               <h3 className="text-gray-500 text-sm font-medium">Valor Pago Guia</h3>
-              <p className="text-2xl font-bold text-indigo-600 mt-2">
-                {results.valorPagoGuia.toFixed(2)}
-              </p>
+              <p className="text-2xl font-bold text-indigo-600 mt-2">{results.valorPagoGuia.toFixed(2)}</p>
             </div>
-
             <div
               className={`bg-white shadow-md rounded-xl p-4 text-center border-t-4 ${
                 results.areEqual ? 'border-green-500' : 'border-red-500'
@@ -87,10 +80,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Tabela */}
-          <h3 className="text-xl font-semibold text-blue-600 mb-4 text-center">
-            Detalhamento dos Procedimentos
-          </h3>
+          <h3 className="text-xl font-semibold text-blue-600 mb-4 text-center">Detalhamento dos Procedimentos</h3>
+
           <div className="overflow-x-auto rounded-xl shadow-sm border border-gray-200">
             <table className="min-w-full text-sm text-center">
               <thead className="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
@@ -101,16 +92,9 @@ export default function Home() {
               </thead>
               <tbody>
                 {results.valoresProc.map((value, index) => (
-                  <tr
-                    key={index}
-                    className="odd:bg-white even:bg-gray-50 hover:bg-blue-50 transition-colors"
-                  >
-                    <td className="px-4 py-3 font-medium text-gray-700">
-                      Procedimento {index + 1}
-                    </td>
-                    <td className="px-4 py-3 text-gray-800">
-                      {value.toFixed(2)}
-                    </td>
+                  <tr key={index} className="odd:bg-white even:bg-gray-50 hover:bg-blue-50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-gray-700">Procedimento {index + 1}</td>
+                    <td className="px-4 py-3 text-gray-800">{value.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
