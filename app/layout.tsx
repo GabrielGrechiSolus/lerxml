@@ -20,9 +20,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
 
   const links = [
-    { href: "/", label: "Processar XML", icon: <FiBarChart2 size={18} /> },
+    { href: "/", label: "Total da guia", icon: <FiBarChart2 size={18} /> },
     { href: "/visualizar", label: "Visualizar XML", icon: <FiFileText size={18} /> },
-    { href: "/totalizadores", label: "Totalizadores", icon: <FiList size={18} /> },
+    { href: "/totalInformado", label: "Total Informado", icon: <FiList size={18} /> },
     { href: '/SomaIndividualXML', label: 'Soma Individual', icon: <FiDollarSign size={18} /> },
   ];
 

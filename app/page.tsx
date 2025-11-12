@@ -65,7 +65,7 @@ export default function ProcessarXML() {
 
   return (
     <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-8 mt-10">
-      <h1 className="text-3xl sm:text-4xl font-bold text-blue-600 mb-8 text-center">Processador de Arquivos XML</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold text-blue-600 mb-8 text-center">Valor pago proc - Erro 5042-059</h1>
 
       <FileDropArea onFile={handleFile} accept=".xml">
         <div className="flex flex-col sm:flex-row items-center gap-4 mb-2 justify-center">
